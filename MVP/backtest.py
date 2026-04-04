@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from portfolio import portfolio
 
+
 class backtest:
     # This class is responsible for running the backtest. It takes the charts file, the strategy, and the initial capital as input. It loads the data, runs the backtest by iterating through each day and executing trades based on the strategy's signals, and finally shows the results of the backtest.
     def __init__(self, charts_file, strategy, initial_capital):
@@ -56,16 +57,19 @@ class backtest:
         
         print("="*60)
 
+    # The calc_bandh_roi_benchmark method calculates the return on investment (ROI) of a buy-and-hold strategy as a benchmark for comparison. It calculates how many shares could be bought with the initial capital at the first price, and then calculates the value of those shares at the last price. It returns the ROI as a percentage.
     def calc_bandh_roi_benchmark(self):
         bh_shares_bought = int(self.initial_capital / self.charts[0])
         bh_rest_cash = self.initial_capital - bh_shares_bought * self.charts[0]
         return (bh_rest_cash + bh_shares_bought * self.charts[-1] - self.initial_capital) / self.initial_capital * 100
     
+    # The calc_bandh_history method calculates the total value of a buy-and-hold strategy over time. It calculates how many shares could be bought with the initial capital at the first price, and then calculates the value of those shares at each price in the charts data. It returns a list of the total value of the buy-and-hold strategy at each time point.
     def calc_bandh_history(self):
         bh_shares = int(self.initial_capital / self.charts[0])
         bh_cash = self.initial_capital - bh_shares * self.charts[0]
         return [bh_cash + bh_shares * price for price in self.charts]
 
+    # The show_results method calculates and displays the final results of the backtest, including the final capital, profit/loss, ROI, total trades, win rate, max drawdown, Sharpe Ratio, and a comparison to a buy-and-hold benchmark. It also generates two graphs: one showing the stock price over time and another showing the portfolio value over time compared to the buy-and-hold strategy. The results are printed in a formatted manner, and the graphs are saved as an image file.
     def show_results(self):
         final_value = self.total_history[-1]
         final_chart = self.charts[-1]

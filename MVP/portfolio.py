@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from config import CONFIG
+
 
 class portfolio:
 
@@ -60,6 +62,7 @@ class portfolio:
     def roi(self, current_price):
         return (self.profit_loss(current_price) / self.initial_capital) * 100
 
+    # The max_dd method calculates the maximum drowdown by identifying the lowest value after every peak.
     def max_dd(self, total_history):
         peak = total_history[0]
         max_drawdown = 0
@@ -75,17 +78,28 @@ class portfolio:
 
         return max_drawdown * 100
     
+    # The sharpe_ratio method calculates the Sharpe Ratio of the portfolio by first calculating the returns from the total history, then calculating the mean and standard deviation of the returns.
+    #  It annualizes the Sharpe Ratio based on the number of trading periods per year defined in the CONFIG. If the standard deviation of returns is zero, it returns a Sharpe Ratio of 0 to avoid division by zero.
     def sharpe_ratio(self, total_history):
         returns = pd.Series(total_history).pct_change().dropna()
     
         if returns.std() == 0:
             return 0
     
-        annualization = np.sqrt(252 * 390)
+        # Annualisierung from Config
+        periods_per_year = (
+            CONFIG["metrics"]["trading_days_per_year"] *
+            CONFIG["metrics"]["hours_per_day"] /
+            CONFIG["metrics"]["interval_hours"]
+        )
+
+        annualization = np.sqrt(periods_per_year)
     
         sharpe = (returns.mean() / returns.std()) * annualization
         return sharpe
-    
+    # The calculate_win_rate method calculates the win rate of the trades by comparing the buy and sell prices. 
+    # It zips the buy and sell history together, checks if each sell price is greater than the corresponding buy price, and calculates the win rate as a percentage.
+    # It also returns the total number of trades. If there are no trades, it returns a win rate of 0 and a total trade count of 0.
     def calculate_win_rate(self):
         trades = zip(self.buy_history, self.sell_history)
         
