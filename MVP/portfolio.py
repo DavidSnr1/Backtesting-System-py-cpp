@@ -1,3 +1,5 @@
+import pandas as pd
+import numpy as np
 
 class portfolio:
 
@@ -57,3 +59,40 @@ class portfolio:
     # The roi method calculates the return on investment (ROI) of the portfolio by dividing the profit or loss by the initial capital and multiplying by 100 to get a percentage.
     def roi(self, current_price):
         return (self.profit_loss(current_price) / self.initial_capital) * 100
+
+    def max_dd(self, total_history):
+        peak = total_history[0]
+        max_drawdown = 0
+    
+        for total in total_history:
+            if total > peak:
+                peak = total
+
+            drawdown = (peak - total) / peak 
+
+            if drawdown > max_drawdown:
+                max_drawdown = drawdown
+
+        return max_drawdown * 100
+    
+    def sharpe_ratio(self, total_history):
+        returns = pd.Series(total_history).pct_change().dropna()
+    
+        if returns.std() == 0:
+            return 0
+    
+        annualization = np.sqrt(252 * 390)
+    
+        sharpe = (returns.mean() / returns.std()) * annualization
+        return sharpe
+    
+    def calculate_win_rate(self):
+        trades = zip(self.buy_history, self.sell_history)
+        
+        results = [sell[1] > buy[1] for buy, sell in trades]
+        
+        if not results:
+            return 0, 0
+        
+        win_rate = sum(results) / len(results) * 100
+        return win_rate, len(results)

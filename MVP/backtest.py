@@ -18,8 +18,7 @@ class backtest:
     # The load_data method reads the charts data from a CSV file and stores it in the charts attribute. It uses pandas to read the CSV file and extracts the 'charts' column as a numpy array.
     def load_data(self):
         df = pd.read_csv(self.charts_file)
-        price_column = 'price' if 'price' in df.columns else 'charts'
-        self.charts = df[price_column].values
+        self.charts = df['price'].values
         return self.charts
     
     # The run_backtest method runs the backtest by iterating through each day in the charts data. For each day, it generates a signal using the strategy's signal method, executes trades based on the signal, and records the total value of the portfolio. It also prints out the progress of the backtest every 20 days if verbose is set to True.
@@ -31,11 +30,11 @@ class backtest:
         print(f"Data points: {len(self.charts)}")
         print("="*60)
 
-        for day in range(len(self.charts)):
-            chart_today = self.charts[day]
+        for tick in range(len(self.charts)):
+            chart_today = self.charts[tick]
 
             # Signal generation
-            signal = self.strategy.signal(self.charts, day)
+            signal = self.strategy.signal(self.charts, tick)
             self.signal_history.append(signal)
 
             # Execute trades based on signal
@@ -48,20 +47,35 @@ class backtest:
             
             # Record total value of the portfolio
             total = self.portfolio.total(chart_today)
-            self.total_history.append(total)  
-            if verbose and day % 20 == 0:
-                print(f"Tag {day:3d} | Kurs: ${chart_today:7.2f} | "
-                      f"Wert: ${total:10.2f} | "
-                      f"Aktien: {self.portfolio.shares:4d} | "
+            self.total_history.append(total)
+            if verbose and tick % 20 == 0:
+                print(f"Tick {tick:3d} | Price: ${chart_today:7.2f} | "
+                      f"Total: ${total:10.2f} | "
+                      f"Shares: {self.portfolio.shares:4d} | "
                       f"Signal: {signal}")
         
         print("="*60)
+
+    def calc_bandh_roi_benchmark(self):
+        bh_shares_bought = int(self.initial_capital / self.charts[0])
+        bh_rest_cash = self.initial_capital - bh_shares_bought * self.charts[0]
+        return (bh_rest_cash + bh_shares_bought * self.charts[-1] - self.initial_capital) / self.initial_capital * 100
+    
+    def calc_bandh_history(self):
+        bh_shares = int(self.initial_capital / self.charts[0])
+        bh_cash = self.initial_capital - bh_shares * self.charts[0]
+        return [bh_cash + bh_shares * price for price in self.charts]
 
     def show_results(self):
         final_value = self.total_history[-1]
         final_chart = self.charts[-1]
         profit_loss = self.portfolio.profit_loss(final_chart)
         roi = self.portfolio.roi(final_chart)
+        max_dd = self.portfolio.max_dd(self.total_history)
+        sharpe = self.portfolio.sharpe_ratio(self.total_history)
+        win_rate, total_trades = self.portfolio.calculate_win_rate()
+        bandh_roi = self.calc_bandh_roi_benchmark()
+
 
         print("\n" + "="*60)
         print("FINAL STATISTIC")
@@ -69,8 +83,13 @@ class backtest:
         print(f"Start Capital:      ${self.initial_capital:>12,.2f}")
         print(f"End Capital:        ${final_value:>12,.2f}")
         print(f"Profit/Loss:        ${profit_loss:>12,.2f}")
-        print(f"ROI:                {roi:>12.2f}%")
-        print(f"\nFinal Shares:       {self.portfolio.shares:>12}")
+        print(f"\nROI:                {roi:>12.2f}%")
+        print(f"Total Trades:        {total_trades:>12}")
+        print(f"Win Rate:           {win_rate:>12,.2f}%")
+        print(f"Max Drawdown:       {max_dd:>12.2f}%")
+        print(f"Sharpe Ratio:        {sharpe:>12.2f}")
+        print(f"B&H Benchmark:      {bandh_roi:>12,.2f}%")
+        print(f"\nFinal Shares:        {self.portfolio.shares:>12}")
         print(f"Final Cash:         ${self.portfolio.cash:>12,.2f}")
         print(f"Final Price:        ${final_chart:>12,.2f}")
         print("="*60)
@@ -79,16 +98,20 @@ class backtest:
     
         # Graph 1: Chart
         ax1.plot(self.charts, label='Stock Price', color='blue', linewidth=2)
-        ax1.set_title(f'{self.strategy.name} - Backtest Result')
+        ax1.set_title('Backtest Result')
         ax1.set_ylabel('Price ($)')
         ax1.legend()
         ax1.grid(True, alpha=0.3)
         
         # Graph 2: Portfolio Value
-        ax2.plot(self.total_history, label='Your Portfolio', color='green', linewidth=2)
-        ax2.axhline(y=self.initial_capital, color='red', linestyle='--', 
+        bnh_history = self.calc_bandh_history()
+        bnh_roi = self.calc_bandh_roi_benchmark()
+
+        ax2.plot(self.total_history, label=f'Strategy (ROI: {roi:.2f}%)', color='green', linewidth=1)
+        ax2.plot(bnh_history, label=f'Buy & Hold (ROI: {bandh_roi:.2f}%)', color='orange', linewidth=1)
+        ax2.axhline(y=self.initial_capital, color='red', linestyle='--',
                     label=f'Start Capital (${self.initial_capital:,.0f})')
-        ax2.set_xlabel('Days')
+        ax2.set_xlabel('Ticks')
         ax2.set_ylabel('Value ($)')
         ax2.legend()
         ax2.grid(True, alpha=0.3)

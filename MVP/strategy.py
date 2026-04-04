@@ -16,9 +16,9 @@ class mov_avg_strat:
         current_price = charts[current_index]
 
         # Generate buy/sell/hold signal based on the current price and the moving average
-        if current_price > avg * 1.01:
+        if current_price > avg * 1.001:
             return 'buy'
-        elif current_price < avg * 0.99:
+        elif current_price < avg * 0.999:
             return 'sell'
         else:
             return 'hold'

@@ -1,34 +1,28 @@
 import pandas as pd
 import numpy as np
+from load_data import get_yahoo_data
 from pathlib import Path
 from backtest import backtest
 from strategy import mov_avg_strat
-
-def gen_sample_data():
-    data = pd.DataFrame({
-        'date': pd.date_range('2020-01-01', periods=100),
-        'price': [100 + np.sin(i/10)*10 + np.random.randn()*2 for i in range(100)]
-    })
-    data.to_csv('MVP/data/sample_data.csv', index=False)
 
 
 def main():
     print("\n" + "="*60)
     print("BACKTESTER STARTER")
     print("="*60)
-    
-    # Generate sample data if it doesn't exist
-    gen_sample_data()
-    
+
+    get_yahoo_data(ticker="BTC-USD", period="1y", interval="1h")
+
+
     # Initialize backtest
     backtest_runner = backtest(
-        charts_file='MVP/data/sample_data.csv',
-        strategy=mov_avg_strat(window_size=10),
-        initial_capital = 10000
+        charts_file='MVP/data/BTC-USD_live.csv',
+        strategy=mov_avg_strat(window_size=15),
+        initial_capital = 1000000
     )
     
     backtest_runner.load_data()
-    backtest_runner.run_backtest(verbose=True)
+    backtest_runner.run_backtest(verbose=False)
     backtest_runner.show_results()
 
 if __name__ == '__main__':
