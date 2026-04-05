@@ -6,6 +6,6 @@ Next To-Dos:
 - (Done) Sharp Metric
 - (Done) Trade Win Rate Metric
 - (Done) Buy and Hold Benchmark
-- Config instead of Hardcoding
+- (Done) Config instead of Hardcoding
 - Abstract Base Strategy -> Mov Avg and 2nd Strategy
 - C++ in Berechnungen verwenden
