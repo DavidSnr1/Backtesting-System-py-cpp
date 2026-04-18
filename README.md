@@ -7,8 +7,11 @@ Next To-Dos:
 - (Done) Trade Win Rate Metric
 - (Done) Buy and Hold Benchmark
 - (Done) Config instead of Hardcoding
-- Abstract Base Strategy -> Mov Avg and 2nd Strategy
-- C++ in Berechnungen verwenden
+- (Done) Multiple Strategies
+- () Transacition Costs
+- () Signal Visualisation
+- () C++ Engine
+- () Plotly for interactive Chart
 
 
 ## Performance Metrics
@@ -31,7 +34,7 @@ A positive value means the strategy made money. A negative value means it lost m
 The percentage gain or loss relative to the initial capital.
 
 ```
-ROI = (P&L / Start Capital) × 100
+ROI = (P&L / Start Capital) Ã— 100
 ```
 Normalizes performance across different capital sizes. A strategy with ROI of +20% doubled the performance of one with +10%, regardless of the absolute amounts involved.
 
@@ -41,7 +44,7 @@ Normalizes performance across different capital sizes. A strategy with ROI of +2
 The largest peak-to-trough decline in portfolio value over the entire backtest period, expressed as a percentage.
 
 ```
-Max DD = max((peak - trough) / peak) × 100
+Max DD = max((peak - trough) / peak) Ã— 100
 ```
 Measures the worst-case loss an investor would have experienced if they bought at the worst possible time. A strategy with high ROI but high Max Drawdown may be too volatile to hold in practice. Lower is better.
 
@@ -51,7 +54,7 @@ Measures the worst-case loss an investor would have experienced if they bought a
 The annualized return per unit of risk, measured as the ratio of average returns to their standard deviation.
 
 ```
-Sharpe = (mean return / std return) × sqrt(periods per year)
+Sharpe = (mean return / std return) Ã— sqrt(periods per year)
 ```
 Answers the question: *how much return are you getting for each unit of volatility you are taking on?*
 
@@ -63,7 +66,7 @@ Answers the question: *how much return are you getting for each unit of volatili
 | 1.0 ? 2.0 | Good |
 | > 2.0 | Excellent |
 
-For hourly BTC data the annualization factor is ?8760 (365 days × 24 hours).
+For hourly BTC data the annualization factor is ?8760 (365 days Ã— 24 hours).
 
 ---
 
@@ -71,7 +74,7 @@ For hourly BTC data the annualization factor is ?8760 (365 days × 24 hours).
 The percentage of completed round-trips (buy followed by sell) where the sell price was higher than the buy price.
 
 ```python
-Win Rate = (profitable trades / total completed trades) × 100
+Win Rate = (profitable trades / total completed trades) Ã— 100
 ```
 A Win Rate above 50% means more trades were profitable than not. However, a high Win Rate alone does not guarantee overall profitability ? a strategy can win 70% of trades but still lose money if the losing trades are significantly larger than the winning ones. Always read Win Rate together with P&L and Sharpe.
 
