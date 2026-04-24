@@ -93,7 +93,7 @@ class portfolio:
         if returns.std() == 0:
             return 0
     
-        # Annualisierung from Config
+        # Annualization from config
         periods_per_year = (
             CONFIG["metrics"]["trading_days_per_year"] *
             CONFIG["metrics"]["hours_per_day"] /

@@ -1,242 +1,180 @@
 # Backtesting-System-py-cpp
 
-Next To-Dos:
+Python-first trading strategy backtester with a matching C++ engine for performance comparison.
 
-- (Done) Max Drawdown Metric
-- (Done) Sharp Metric
-- (Done) Trade Win Rate Metric
-- (Done) Buy and Hold Benchmark
-- (Done) Config instead of Hardcoding
-- (Done) Multiple Strategies
-- (Done) Transacition Costs
-- () Signal Visualisation
-- () C++ Engine
-- () Plotly for interactive Chart
+## What This Project Does
 
-## C++ Engine
+- Downloads market data from Yahoo Finance.
+- Runs multiple trading strategies against the same price series.
+- Reports core metrics (P&L, ROI, Max Drawdown, Sharpe, Win Rate, Fees, Trade count).
+- Saves a chart image and prints a tabular performance summary.
+- Runs the same logic in Python and C++ to compare runtime.
 
-### Build
-**Windows:**
-```bash
-g++ -O2 -std=c++17 -o backtest.exe data/cpp/backtest.cpp
-```
+## Project Structure
 
-**Mac/Linux:**
-```bash
-g++ -O2 -std=c++17 -o backtest data/cpp/backtest.cpp
-# or simply:
-make
-```
-
-### Run
-```bash
-# Windows
-backtest.exe data/BTC-USD_live.csv all
-
-# Mac/Linux  
-./backtest data/BTC-USD_live.csv all
+```text
+.
+|- main.py                 # Main entry point
+|- backtest.py             # Python backtest engine
+|- portfolio.py            # Portfolio accounting and metrics
+|- strategy.py             # Strategy implementations
+|- load_data.py            # Yahoo data download and CSV export
+|- config.py               # Backtest and strategy configuration
+|- data/
+|  |- BTC-USD_live.csv     # Example generated data file
+|  |- sample_data.csv      # Sample input file
+|  |- cpp/
+|     |- backtest.cpp      # C++ backtest engine
+|     |- MakeFile          # C++ build file
+|- requirements.txt
 ```
 
 ## Requirements
 
 ### Python
+
+- Python 3.10+
+- Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### C++ Engine
-Requires g++ (GCC):
+### C++
 
-**Windows:** 
+- A C++17-capable compiler (g++ or clang++)
+- The C++ engine uses structured bindings, so C++17 is required.
+
+Windows (MSYS2 example):
+
 ```bash
 winget install MSYS2.MSYS2
-# In MSYS2 Terminal:
+# In MSYS2 terminal:
 pacman -S mingw-w64-x86_64-gcc
-# In Powershell
-[System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\msys64\mingw64\bin", "User")
 ```
 
-**Mac:**
+macOS:
+
 ```bash
 xcode-select --install
 ```
 
-**Linux:**
+Linux:
+
 ```bash
 sudo apt install g++
 ```
 
-Then build:
+## Quick Start
+
+Run the full Python workflow (download data, run backtests, show metrics, save chart, compare with C++ if binary exists):
+
 ```bash
-cd cpp
+python main.py
+```
+
+## Build and Run C++ Engine
+
+From the repository root:
+
+Windows:
+
+```bash
+g++ -O2 -std=c++17 -o data/cpp/backtest.exe data/cpp/backtest.cpp
+data/cpp/backtest.exe data/BTC-USD_live.csv all
+```
+
+macOS/Linux:
+
+```bash
+g++ -O2 -std=c++17 -o data/cpp/backtest data/cpp/backtest.cpp
+./data/cpp/backtest data/BTC-USD_live.csv all
+```
+
+Or use Make from the C++ folder:
+
+```bash
+cd data/cpp
 make
 ```
 
+## Configuration
+
+Edit values in `config.py`:
+
+- Data source: `ticker`, `period`, `interval`
+- Initial capital and transaction cost
+- Strategy enable/disable switches
+- Strategy parameters (windows, thresholds, RSI bounds, Bollinger settings)
+- Annualization settings for metrics
+
+## Output
+
+- Console summary table with per-strategy metrics
+- Saved chart image: `backtest_ergebnis.png`
+- Optional Python vs C++ runtime comparison in console
+
+## Runtime Benchmark
+
+| Engine  | Runtime |
+|---------|---------|
+| Python  | ~580ms  |
+| C++     | ~2ms    |
+| Speedup | ~284x   |
+
+*Measured on 8,760 ticks (BTC-USD, 1h, 1 year)*
+
 ## Performance Metrics
 
-Each strategy is evaluated using the following metrics after the backtest completes.
+### P&L (Profit and Loss)
 
----
-
-### P&L ? Profit and Loss
-The absolute difference between the final portfolio value and the initial capital.
-
-```
+```text
 P&L = End Capital - Start Capital
 ```
-A positive value means the strategy made money. A negative value means it lost money. Unlike ROI, P&L is not normalized ? it depends on the initial capital and is useful for comparing absolute returns.
 
----
+### ROI (Return on Investment)
 
-### ROI ? Return on Investment
-The percentage gain or loss relative to the initial capital.
-
+```text
+ROI = (P&L / Start Capital) * 100
 ```
-ROI = (P&L / Start Capital) × 100
+
+### Max Drawdown
+
+```text
+Max DD = max((peak - trough) / peak) * 100
 ```
-Normalizes performance across different capital sizes. A strategy with ROI of +20% doubled the performance of one with +10%, regardless of the absolute amounts involved.
-
----
-
-### Max DD ? Maximum Drawdown
-The largest peak-to-trough decline in portfolio value over the entire backtest period, expressed as a percentage.
-
-```
-Max DD = max((peak - trough) / peak) × 100
-```
-Measures the worst-case loss an investor would have experienced if they bought at the worst possible time. A strategy with high ROI but high Max Drawdown may be too volatile to hold in practice. Lower is better.
-
----
 
 ### Sharpe Ratio
-The annualized return per unit of risk, measured as the ratio of average returns to their standard deviation.
 
+```text
+Sharpe = (mean return / std return) * sqrt(periods per year)
 ```
-Sharpe = (mean return / std return) × sqrt(periods per year)
-```
-Answers the question: *how much return are you getting for each unit of volatility you are taking on?*
-
-| Sharpe | Interpretation |
-|---|---|
-| < 0 | Strategy loses money on a risk-adjusted basis |
-| 0 ? 0.5 | Weak |
-| 0.5 ? 1.0 | Acceptable |
-| 1.0 ? 2.0 | Good |
-| > 2.0 | Excellent |
-
-For hourly BTC data the annualization factor is ?8760 (365 days × 24 hours).
-
----
 
 ### Win Rate
-The percentage of completed round-trips (buy followed by sell) where the sell price was higher than the buy price.
 
-```python
-Win Rate = (profitable trades / total completed trades) × 100
+```text
+Win Rate = (profitable trades / completed trades) * 100
 ```
-A Win Rate above 50% means more trades were profitable than not. However, a high Win Rate alone does not guarantee overall profitability ? a strategy can win 70% of trades but still lose money if the losing trades are significantly larger than the winning ones. Always read Win Rate together with P&L and Sharpe.
 
-## Strategies
+## Implemented Strategies
 
-All strategies are configured in `config.py` under the `strategies` key. Each strategy can be enabled or disabled with the `enabled` flag. Only enabled strategies are backtested and shown in the summary.
+- Buy and Hold
+- Moving Average
+- RSI
+- Dual Moving Average
+- Bollinger Bands
 
----
+All strategy toggles and parameters are managed in `config.py`.
 
-### Buy & Hold
-```python
-"buy_and_hold": {
-    "enabled": True
-}
+## Troubleshooting
+
+- `cc1plus.exe: fatal error: cpp/backtest.cpp: No such file or directory`
+Use the correct path from repo root:
+
+```bash
+g++ -O2 -std=c++17 -o data/cpp/backtest.exe data/cpp/backtest.cpp
 ```
-The passive benchmark strategy. Buys as many shares as possible at the first tick and holds them until the end. No parameters needed. Always runs as a reference line in the chart and as a comparison column in the summary table.
 
----
+- `structured bindings requires compiler flag '/std:c++17'`
+Compile with C++17 enabled (`-std=c++17` for g++, `/std:c++17` for MSVC).
 
-### Moving Average
-```python
-"moving_average": {
-    "enabled": True,
-    "window_size": 20,
-    "threshold_buy": 0.01,
-    "threshold_sell": 0.01
-}
-```
-Compares the current price to its rolling average over `window_size` ticks. A dead zone around the average (controlled by `threshold_buy` and `threshold_sell`) suppresses signals from minor fluctuations.
-
-- **Buy** ? price rises more than `threshold_buy` above the moving average
-- **Sell** ? price falls more than `threshold_sell` below the moving average
-- **Hold** ? price stays within the threshold band
-
-Trend-following strategy. Works well in sustained directional markets.
-
----
-
-### RSI ? Relative Strength Index
-```python
-"rsi": {
-    "enabled": False,
-    "window_size": 14,
-    "oversold": 30,
-    "overbought": 70
-}
-```
-Measures the ratio of upward to downward price movements over `window_size` ticks and maps the result to a value between 0 and 100.
-
-- **Buy** ? RSI drops below `oversold` (market considered oversold, recovery expected)
-- **Sell** ? RSI rises above `overbought` (market considered overbought, correction expected)
-- **Hold** ? RSI stays between the two thresholds
-
-Mean reversion strategy. Assumes extreme moves are temporary and prices revert to the mean.
-
----
-
-### Dual Moving Average
-```python
-"dual_ma": {
-    "enabled": False,
-    "window_short": 10,
-    "window_long": 50
-}
-```
-Calculates two moving averages simultaneously ? a fast one (`window_short`) and a slow one (`window_long`). The signal is generated by comparing the two averages rather than comparing price to a single average, which filters out short-term noise.
-
-- **Buy** ? short MA crosses above long MA (upward momentum building)
-- **Sell** ? short MA crosses below long MA (downward momentum building)
-- **Hold** ? both MAs are equal
-
-Trend-following strategy. Slower to react than simple Moving Average but more robust against false signals.
-
----
-
-### Bollinger Bands
-```python
-"bollinger": {
-    "enabled": False,
-    "window_size": 20,
-    "num_std": 2
-}
-```
-Builds a statistical corridor around the rolling average using standard deviation. The upper and lower bands automatically widen during volatile periods and narrow during calm periods ? the bands breathe with the market.
-
-- **Buy** ? price drops below the lower band (statistically too cheap)
-- **Sell** ? price rises above the upper band (statistically too expensive)
-- **Hold** ? price stays within the corridor
-
-Mean reversion strategy. With `num_std=2` approximately 95% of all price movements fall within the bands under normal distribution assumptions, making a breach a statistically rare event.
-
-| `num_std` | Band Width | Signal Frequency |
-|---|---|---|
-| 1 | Narrow | Many signals |
-| 2 | Standard | Balanced |
-| 3 | Wide | Only extreme outliers |
-
----
-
-### Strategy Overview
-
-| Strategy | Type | Buys when | Sells when |
-|---|---|---|---|
-| Moving Average | Trend-following | Price rises above MA + threshold | Price falls below MA - threshold |
-| RSI | Mean Reversion | RSI < oversold | RSI > overbought |
-| Dual MA | Trend-following | Short MA crosses above Long MA | Short MA crosses below Long MA |
-| Bollinger Bands | Mean Reversion | Price below lower band | Price above upper band |

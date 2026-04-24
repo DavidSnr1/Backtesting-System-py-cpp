@@ -11,7 +11,7 @@ from config import CONFIG
 
 
 def run_cpp_backtest(csv_path):
-    # Binary-Name je nach OS
+    # Binary name depends on the OS
     binary = "./data/cpp/backtest.exe" if sys.platform == "win32" else "./data/cpp/backtest"
 
     if not os.path.exists(binary):
@@ -25,7 +25,7 @@ def run_cpp_backtest(csv_path):
     )
 
     if result.returncode != 0:
-        print(f"\nC++ Fehler: {result.stderr}")
+        print(f"\nC++ error: {result.stderr}")
         return None
 
     # parsing output - every strategy is separated by "---"
@@ -116,7 +116,7 @@ def main():
         initial_capital=CONFIG["backtest"]["initial_capital"]
     )
 
-    # Python Backtest ? Timer
+    # Python backtest timer
     start = time.time()
     backtest_runner.load_data()
     backtest_runner.run_backtest()
@@ -124,7 +124,7 @@ def main():
 
     backtest_runner.show_results()
 
-    # C++ Backtest ? Comparison
+    # C++ backtest comparison
     cpp_results = run_cpp_backtest(csv_path)
     print_cpp_comparison(python_ms, cpp_results)
 

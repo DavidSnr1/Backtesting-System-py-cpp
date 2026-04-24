@@ -36,7 +36,7 @@ CONFIG = {
         }
     },
     "metrics": {
-        "trading_days_per_year": 365,   #Infos regarding the specified Stock
+        "trading_days_per_year": 365,   # Market schedule assumptions for annualization
         "hours_per_day": 24,               
         "interval_hours": 1                
     }

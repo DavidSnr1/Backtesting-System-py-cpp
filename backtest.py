@@ -90,7 +90,7 @@ class backtest:
         bandh_history = self.calc_bandh_history()
         bandh_max_dd = portfolio(self.initial_capital).max_dd(bandh_history)
 
-        # Summary Tabelle
+        # Summary table
         headers = ["Strategy", "End Capital", "P&L", "ROI", "Max DD", "Sharpe", "Win Rate", "Total Fees", "Trades"]
         rows = []
 
@@ -117,14 +117,14 @@ class backtest:
         colors = ['green', 'royalblue', 'purple', 'crimson', 'darkorange']
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 9))
 
-        # Graph 1: Kursverlauf
+        # Graph 1: Price series
         ax1.plot(self.charts, label='Price', color='blue', linewidth=2)
         ax1.set_title(f'Backtest Result')
         ax1.set_ylabel('Price ($)')
         ax1.legend()
         ax1.grid(True, alpha=0.3)
 
-        # Graph 2: Portfolio Value pro Strategie
+        # Graph 2: Portfolio value per strategy
         for i, (name, r) in enumerate(self.results.items()):
             color = colors[i % len(colors)]
             ax2.plot(
