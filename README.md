@@ -176,5 +176,5 @@ g++ -O2 -std=c++17 -o data/cpp/backtest.exe data/cpp/backtest.cpp
 ```
 
 - `structured bindings requires compiler flag '/std:c++17'`
-Compile with C++17 enabled (`-std=c++17` for g++, `/std:c++17` for MSVC).
+Compile with C++17 enabled (`-std=c++17` for g++, `/std:c++17` for MSVC)
 

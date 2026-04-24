@@ -28,7 +28,7 @@ def run_cpp_backtest(csv_path):
         print(f"\nC++ error: {result.stderr}")
         return None
 
-    # parsing output - every strategy is separated by "---"
+    # parsing output: every strategy is separated by "---"
     all_results = []
     current = {}
     for line in result.stdout.strip().split('\n'):
