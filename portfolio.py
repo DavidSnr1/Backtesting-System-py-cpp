@@ -12,21 +12,25 @@ class portfolio:
         self.cash = initial_capital
         self.shares = 0
         self.initial_capital = initial_capital
+        self.fees = 0
 
         self.buy_history = []
         self.sell_history = []
 
     # The check_buy method checks if the portfolio has enough cash to buy a certain number of shares at a given price. It calculates the total cost of the purchase and compares it to the available cash.
     def check_buy(self, size, price):
-        kosten = size * price
-        return self.cash >= kosten
+        costs = size * price
+        return self.cash >= costs
     
     # The buy method attempts to buy a certain number of shares at a given price. It first checks if the purchase is possible using the check_buy method. If it is, it deducts the cost from the cash, adds the shares to the portfolio, and records the purchase in the buy history. If not, it prints an error message and returns False.
     def buy(self, size, price):
-        kosten = size * price
+        costs = size * price
+        fee = costs * CONFIG["transaction_cost"]
+        costs += fee
         if self.check_buy(size,price):
-            self.cash -= kosten
+            self.cash -= costs
             self.shares += size
+            self.fees += fee
             self.buy_history.append((size, price))
             return True
         else: 
@@ -41,9 +45,12 @@ class portfolio:
     def sell(self, size, price):
 
         revenue = size * price
+        fee = revenue * CONFIG["transaction_cost"]
+        revenue -= fee
         if self.check_sell(size):
             self.cash += revenue
             self.shares -= size
+            self.fees += fee
             self.sell_history.append((size, price))
             return True
         else:

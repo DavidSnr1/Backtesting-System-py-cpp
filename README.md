@@ -8,11 +8,69 @@ Next To-Dos:
 - (Done) Buy and Hold Benchmark
 - (Done) Config instead of Hardcoding
 - (Done) Multiple Strategies
-- () Transacition Costs
+- (Done) Transacition Costs
 - () Signal Visualisation
 - () C++ Engine
 - () Plotly for interactive Chart
 
+## C++ Engine
+
+### Build
+**Windows:**
+```bash
+g++ -O2 -std=c++17 -o backtest.exe data/cpp/backtest.cpp
+```
+
+**Mac/Linux:**
+```bash
+g++ -O2 -std=c++17 -o backtest data/cpp/backtest.cpp
+# or simply:
+make
+```
+
+### Run
+```bash
+# Windows
+backtest.exe data/BTC-USD_live.csv all
+
+# Mac/Linux  
+./backtest data/BTC-USD_live.csv all
+```
+
+## Requirements
+
+### Python
+```bash
+pip install -r requirements.txt
+```
+
+### C++ Engine
+Requires g++ (GCC):
+
+**Windows:** 
+```bash
+winget install MSYS2.MSYS2
+# In MSYS2 Terminal:
+pacman -S mingw-w64-x86_64-gcc
+# In Powershell
+[System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\msys64\mingw64\bin", "User")
+```
+
+**Mac:**
+```bash
+xcode-select --install
+```
+
+**Linux:**
+```bash
+sudo apt install g++
+```
+
+Then build:
+```bash
+cd cpp
+make
+```
 
 ## Performance Metrics
 

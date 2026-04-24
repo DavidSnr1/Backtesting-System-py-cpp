@@ -15,7 +15,21 @@ class backtest:
 
     def load_data(self):
         df = pd.read_csv(self.charts_file)
+
+        if df.empty or 'price' not in df.columns:
+            raise ValueError(
+                f"No valid price data found in {self.charts_file}. "
+                "Ensure data download succeeded and CSV contains a 'price' column with rows."
+            )
+
         self.charts = df['price'].values
+
+        if len(self.charts) == 0:
+            raise ValueError(
+                f"No chart rows found in {self.charts_file}. "
+                "Backtest requires at least one price tick."
+            )
+
         return self.charts
 
     def run_backtest(self):
@@ -56,6 +70,7 @@ class backtest:
                 "max_dd":         p.max_dd(total_history),
                 "sharpe":         p.sharpe_ratio(total_history),
                 "win_rate":       win_rate,
+                "total_fees":     p.fees,
                 "total_trades":   total_trades,
                 "final_value":    total_history[-1]
             }
@@ -76,7 +91,7 @@ class backtest:
         bandh_max_dd = portfolio(self.initial_capital).max_dd(bandh_history)
 
         # Summary Tabelle
-        headers = ["Strategy", "End Capital", "P&L", "ROI", "Max DD", "Sharpe", "Win Rate", "Trades"]
+        headers = ["Strategy", "End Capital", "P&L", "ROI", "Max DD", "Sharpe", "Win Rate", "Total Fees", "Trades"]
         rows = []
 
         for name, r in self.results.items():
@@ -88,6 +103,7 @@ class backtest:
                 f"{r['max_dd']:.2f}%",
                 f"{r['sharpe']:.2f}",
                 f"{r['win_rate']:.2f}%",
+                f"${r['total_fees']:.2f}",
                 r['total_trades']
             ])
 

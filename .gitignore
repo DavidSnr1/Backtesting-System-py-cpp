@@ -3,3 +3,5 @@ data/
 .conda/
 .venv/
 *.pyc
+cpp/backtest.exe
+cpp/backtest
