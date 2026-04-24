@@ -31,5 +31,5 @@ def get_yahoo_data(ticker="BTC-USD", period="1y", interval="1h"):
         )
     
     # Save to CSV
-    df.to_csv(f'MVP/data/{ticker}_live.csv', index=False)
+    df.to_csv(f'data/{ticker}_live.csv', index=False)
     return df
