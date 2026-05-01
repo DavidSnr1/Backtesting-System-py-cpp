@@ -6,10 +6,11 @@ from tabulate import tabulate
 
 
 class backtest:
-    def __init__(self, charts_file, strategies, initial_capital):
+    def __init__(self, charts_file, strategies, initial_capital, fraction_position):
         self.charts_file = charts_file
         self.strategies = strategies
         self.initial_capital = initial_capital
+        self.fraction_position = fraction_position
         self.charts = None
         self.results = {}
 
@@ -51,7 +52,7 @@ class backtest:
                 signal_history.append(signal)
 
                 if signal == 'buy' and p.cash > 0:
-                    size = int(p.cash / chart_today)
+                    size = int(p.cash * self.fraction_position / chart_today)
                     if size > 0:
                         p.buy(size, chart_today)
                 elif signal == 'sell' and p.shares > 0:
@@ -134,7 +135,7 @@ class backtest:
                 linewidth=1
             )
 
-        ax2.plot(bandh_history, label=f'Buy & Hold (ROI: {bandh_roi:+.2f}%)', color='orange', linewidth=1, linestyle='--')
+        #ax2.plot(bandh_history, label=f'Buy & Hold (ROI: {bandh_roi:+.2f}%)', color='orange', linewidth=1, linestyle='--')
         ax2.axhline(y=self.initial_capital, color='red', linestyle='--', label=f'Start Capital (${self.initial_capital:,.0f})')
         ax2.set_xlabel('Ticks')
         ax2.set_ylabel('Value ($)')

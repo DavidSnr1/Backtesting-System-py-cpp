@@ -6,7 +6,8 @@ CONFIG = {
     },
     "transaction_cost": 0.001,            #Transaction Cost (0.1%)
     "backtest": {
-        "initial_capital": 10000000,   #Initial Capital
+        "initial_capital": 10000000, 
+        "fraction_position": 0.1  #Fraction of Capital to Invest per Trade
     },
     "strategies": {
         "buy_and_hold": {

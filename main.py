@@ -18,8 +18,30 @@ def run_cpp_backtest(csv_path):
         print("\nC++ Binary not found. Compile with: g++ -O2 -std=c++17 -o data/cpp/backtest.exe data/cpp/backtest.cpp")
         return None
 
+    cpp_args = [
+        binary,
+        csv_path,
+        "all",
+        str(CONFIG["backtest"]["initial_capital"]),
+        str(CONFIG["backtest"]["fraction_position"]),
+        str(CONFIG["transaction_cost"]),
+        str(CONFIG["metrics"]["trading_days_per_year"]),
+        str(CONFIG["metrics"]["hours_per_day"]),
+        str(CONFIG["metrics"]["interval_hours"]),
+        str(CONFIG["strategies"]["moving_average"]["window_size"]),
+        str(CONFIG["strategies"]["moving_average"]["threshold_buy"]),
+        str(CONFIG["strategies"]["moving_average"]["threshold_sell"]),
+        str(CONFIG["strategies"]["rsi"]["window_size"]),
+        str(CONFIG["strategies"]["rsi"]["oversold"]),
+        str(CONFIG["strategies"]["rsi"]["overbought"]),
+        str(CONFIG["strategies"]["dual_ma"]["window_short"]),
+        str(CONFIG["strategies"]["dual_ma"]["window_long"]),
+        str(CONFIG["strategies"]["bollinger"]["window_size"]),
+        str(CONFIG["strategies"]["bollinger"]["num_std"]),
+    ]
+
     result = subprocess.run(
-        [binary, csv_path, "all"],
+        cpp_args,
         capture_output=True,
         text=True
     )
@@ -113,7 +135,8 @@ def main():
     backtest_runner = backtest(
         charts_file=csv_path,
         strategies=strategies,
-        initial_capital=CONFIG["backtest"]["initial_capital"]
+        initial_capital=CONFIG["backtest"]["initial_capital"],
+        fraction_position=CONFIG["backtest"]["fraction_position"]
     )
 
     # Python backtest timer
