@@ -1,6 +1,6 @@
 // backtest.cpp
 // C++ backtest engine mirroring Python portfolio.py + backtest.py
-// Usage: backtest.exe <csv_file> <strategy> [params...]
+// Usage: backtest.exe <csv_file> <runtime_config_file> [strategy]
 // Strategies: mov_avg, buy_and_hold, rsi, dual_ma, bollinger
  
 #include <iostream>
@@ -12,6 +12,27 @@
 #include <cmath>
 #include <chrono>
 #include <sstream>
+
+
+std::string trim(const std::string& value) {
+    const char* whitespace = " \t\r\n";
+    const size_t start = value.find_first_not_of(whitespace);
+    if (start == std::string::npos) {
+        return "";
+    }
+    const size_t end = value.find_last_not_of(whitespace);
+    return value.substr(start, end - start + 1);
+}
+
+std::vector<std::string> split(const std::string& value, char delimiter) {
+    std::vector<std::string> parts;
+    std::stringstream ss(value);
+    std::string item;
+    while (std::getline(ss, item, delimiter)) {
+        parts.push_back(trim(item));
+    }
+    return parts;
+}
  
 // ========================================
 // RUNTIME CONFIG (mirrors config.py)
@@ -40,6 +61,64 @@ struct RuntimeConfig {
     int bollinger_window = 20;
     double bollinger_num_std = 2.0;
 };
+
+bool load_runtime_config(const std::string& filename,
+                         RuntimeConfig& cfg,
+                         std::vector<std::string>& enabled_strategies) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error: cannot open runtime config file " << filename << std::endl;
+        return false;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        line = trim(line);
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        size_t separator = line.find('=');
+        if (separator == std::string::npos) {
+            continue;
+        }
+
+        std::string key = trim(line.substr(0, separator));
+        std::string value = trim(line.substr(separator + 1));
+
+        try {
+            if (key == "initial_capital") cfg.initial_capital = std::stod(value);
+            else if (key == "fraction_position") cfg.fraction_position = std::stod(value);
+            else if (key == "transaction_cost") cfg.transaction_cost = std::stod(value);
+            else if (key == "trading_days") cfg.trading_days = std::stod(value);
+            else if (key == "hours_per_day") cfg.hours_per_day = std::stod(value);
+            else if (key == "interval_hours") cfg.interval_hours = std::stod(value);
+            else if (key == "mov_avg_window") cfg.mov_avg_window = std::stoi(value);
+            else if (key == "mov_avg_threshold_buy") cfg.mov_avg_threshold_buy = std::stod(value);
+            else if (key == "mov_avg_threshold_sell") cfg.mov_avg_threshold_sell = std::stod(value);
+            else if (key == "rsi_window") cfg.rsi_window = std::stoi(value);
+            else if (key == "rsi_oversold") cfg.rsi_oversold = std::stod(value);
+            else if (key == "rsi_overbought") cfg.rsi_overbought = std::stod(value);
+            else if (key == "dual_ma_window_short") cfg.dual_ma_window_short = std::stoi(value);
+            else if (key == "dual_ma_window_long") cfg.dual_ma_window_long = std::stoi(value);
+            else if (key == "bollinger_window") cfg.bollinger_window = std::stoi(value);
+            else if (key == "bollinger_num_std") cfg.bollinger_num_std = std::stod(value);
+            else if (key == "enabled_strategies") {
+                enabled_strategies.clear();
+                for (const auto& strategy : split(value, ',')) {
+                    if (!strategy.empty()) {
+                        enabled_strategies.push_back(strategy);
+                    }
+                }
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error parsing runtime config key '" << key << "': " << e.what() << std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
  
 // ========================================
 // PORTFOLIO (mirrors portfolio.py)
@@ -401,46 +480,23 @@ BacktestResult run_backtest(const std::vector<double>& charts,
  
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        std::cerr << "Usage: backtest.exe <csv_file> <strategy>" << std::endl;
+        std::cerr << "Usage: backtest.exe <csv_file> <runtime_config_file> [strategy]" << std::endl;
         std::cerr << "Strategies: mov_avg | buy_and_hold | rsi | dual_ma | bollinger | all" << std::endl;
         return 1;
     }
  
     std::string csv_file      = argv[1];
-    std::string strategy_name = argv[2];
+    std::string config_file   = argv[2];
+    std::string strategy_name = (argc > 3) ? argv[3] : "all";
 
     RuntimeConfig cfg;
-    // Optional overrides from Python config:
-    // 3: initial_capital, 4: fraction_position, 5: transaction_cost
-    // 6: trading_days, 7: hours_per_day, 8: interval_hours
-    // 9: mov_avg_window, 10: mov_avg_threshold_buy, 11: mov_avg_threshold_sell
-    // 12: rsi_window, 13: rsi_oversold, 14: rsi_overbought
-    // 15: dual_ma_window_short, 16: dual_ma_window_long
-    // 17: bollinger_window, 18: bollinger_num_std
-    try {
-        if (argc > 3)  cfg.initial_capital = std::stod(argv[3]);
-        if (argc > 4)  cfg.fraction_position = std::stod(argv[4]);
-        if (argc > 5)  cfg.transaction_cost = std::stod(argv[5]);
-        if (argc > 6)  cfg.trading_days = std::stod(argv[6]);
-        if (argc > 7)  cfg.hours_per_day = std::stod(argv[7]);
-        if (argc > 8)  cfg.interval_hours = std::stod(argv[8]);
-
-        if (argc > 9)  cfg.mov_avg_window = std::stoi(argv[9]);
-        if (argc > 10) cfg.mov_avg_threshold_buy = std::stod(argv[10]);
-        if (argc > 11) cfg.mov_avg_threshold_sell = std::stod(argv[11]);
-
-        if (argc > 12) cfg.rsi_window = std::stoi(argv[12]);
-        if (argc > 13) cfg.rsi_oversold = std::stod(argv[13]);
-        if (argc > 14) cfg.rsi_overbought = std::stod(argv[14]);
-
-        if (argc > 15) cfg.dual_ma_window_short = std::stoi(argv[15]);
-        if (argc > 16) cfg.dual_ma_window_long = std::stoi(argv[16]);
-
-        if (argc > 17) cfg.bollinger_window = std::stoi(argv[17]);
-        if (argc > 18) cfg.bollinger_num_std = std::stod(argv[18]);
-    } catch (const std::exception& e) {
-        std::cerr << "Error parsing config args: " << e.what() << std::endl;
+    std::vector<std::string> enabled_strategies;
+    if (!load_runtime_config(config_file, cfg, enabled_strategies)) {
         return 1;
+    }
+
+    if (enabled_strategies.empty()) {
+        enabled_strategies = {"mov_avg", "buy_and_hold", "rsi", "dual_ma", "bollinger"};
     }
  
     std::vector<double> prices = load_prices(csv_file);
@@ -451,7 +507,7 @@ int main(int argc, char* argv[]) {
  
     std::vector<std::string> strategies;
     if (strategy_name == "all") {
-        strategies = {"mov_avg", "buy_and_hold", "rsi", "dual_ma", "bollinger"};
+        strategies = enabled_strategies;
     } else {
         strategies = {strategy_name};
     }

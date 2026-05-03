@@ -81,14 +81,21 @@ Windows:
 
 ```bash
 g++ -O2 -std=c++17 -o data/cpp/backtest.exe data/cpp/backtest.cpp
-data/cpp/backtest.exe data/BTC-USD_live.csv all
+python main.py  # generates data/cpp/runtime_config.txt and runs C++ automatically
 ```
 
 macOS/Linux:
 
 ```bash
 g++ -O2 -std=c++17 -o data/cpp/backtest data/cpp/backtest.cpp
-./data/cpp/backtest data/BTC-USD_live.csv all
+python main.py  # generates data/cpp/runtime_config.txt and runs C++ automatically
+```
+
+Manual C++ run with generated config file:
+
+```bash
+data/cpp/backtest.exe data/BTC-USD_live.csv data/cpp/runtime_config.txt all  # Windows
+./data/cpp/backtest data/BTC-USD_live.csv data/cpp/runtime_config.txt all    # macOS/Linux
 ```
 
 Or use Make from the C++ folder:

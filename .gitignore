@@ -7,5 +7,11 @@ data/cpp/*
 .conda/
 .venv/
 *.pyc
-cpp/backtest.exe
-cpp/backtest
+# C++ build artifacts (binaries and debug symbols)
+data/cpp/backtest.exe
+data/cpp/backtest
+data/cpp/*.pdb
+# Generated at runtime by main.py ? not part of source
+data/cpp/runtime_config.txt
+# Chart output ? regenerated on every run
+backtest_ergebnis.png

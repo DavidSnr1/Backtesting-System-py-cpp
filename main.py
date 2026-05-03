@@ -11,6 +11,46 @@ from config import CONFIG
 
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+CPP_DIR = os.path.join(PROJECT_ROOT, "data", "cpp")
+
+
+def write_cpp_runtime_config(config_path):
+    strategy_name_map = {
+        "moving_average": "mov_avg",
+        "buy_and_hold": "buy_and_hold",
+        "rsi": "rsi",
+        "dual_ma": "dual_ma",
+        "bollinger": "bollinger",
+    }
+
+    enabled_strategies = [
+        cpp_name
+        for py_name, cpp_name in strategy_name_map.items()
+        if CONFIG["strategies"][py_name]["enabled"]
+    ]
+
+    lines = [
+        f"initial_capital={CONFIG['backtest']['initial_capital']}",
+        f"fraction_position={CONFIG['backtest']['fraction_position']}",
+        f"transaction_cost={CONFIG['transaction_cost']}",
+        f"trading_days={CONFIG['metrics']['trading_days_per_year']}",
+        f"hours_per_day={CONFIG['metrics']['hours_per_day']}",
+        f"interval_hours={CONFIG['metrics']['interval_hours']}",
+        f"mov_avg_window={CONFIG['strategies']['moving_average']['window_size']}",
+        f"mov_avg_threshold_buy={CONFIG['strategies']['moving_average']['threshold_buy']}",
+        f"mov_avg_threshold_sell={CONFIG['strategies']['moving_average']['threshold_sell']}",
+        f"rsi_window={CONFIG['strategies']['rsi']['window_size']}",
+        f"rsi_oversold={CONFIG['strategies']['rsi']['oversold']}",
+        f"rsi_overbought={CONFIG['strategies']['rsi']['overbought']}",
+        f"dual_ma_window_short={CONFIG['strategies']['dual_ma']['window_short']}",
+        f"dual_ma_window_long={CONFIG['strategies']['dual_ma']['window_long']}",
+        f"bollinger_window={CONFIG['strategies']['bollinger']['window_size']}",
+        f"bollinger_num_std={CONFIG['strategies']['bollinger']['num_std']}",
+        f"enabled_strategies={','.join(enabled_strategies)}",
+    ]
+
+    with open(config_path, "w", encoding="utf-8") as config_file:
+        config_file.write("\n".join(lines) + "\n")
 
 
 def run_cpp_backtest(csv_path):
@@ -28,26 +68,15 @@ def run_cpp_backtest(csv_path):
             print("  g++ -O2 -std=c++17 -o data/cpp/backtest data/cpp/backtest.cpp")
         return None
 
+    os.makedirs(CPP_DIR, exist_ok=True)
+    runtime_config_path = os.path.join(CPP_DIR, "runtime_config.txt")
+    write_cpp_runtime_config(runtime_config_path)
+
     cpp_args = [
         binary,
         os.path.abspath(csv_path),
+        runtime_config_path,
         "all",
-        str(CONFIG["backtest"]["initial_capital"]),
-        str(CONFIG["backtest"]["fraction_position"]),
-        str(CONFIG["transaction_cost"]),
-        str(CONFIG["metrics"]["trading_days_per_year"]),
-        str(CONFIG["metrics"]["hours_per_day"]),
-        str(CONFIG["metrics"]["interval_hours"]),
-        str(CONFIG["strategies"]["moving_average"]["window_size"]),
-        str(CONFIG["strategies"]["moving_average"]["threshold_buy"]),
-        str(CONFIG["strategies"]["moving_average"]["threshold_sell"]),
-        str(CONFIG["strategies"]["rsi"]["window_size"]),
-        str(CONFIG["strategies"]["rsi"]["oversold"]),
-        str(CONFIG["strategies"]["rsi"]["overbought"]),
-        str(CONFIG["strategies"]["dual_ma"]["window_short"]),
-        str(CONFIG["strategies"]["dual_ma"]["window_long"]),
-        str(CONFIG["strategies"]["bollinger"]["window_size"]),
-        str(CONFIG["strategies"]["bollinger"]["num_std"]),
     ]
 
     result = subprocess.run(
