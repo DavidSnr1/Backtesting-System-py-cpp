@@ -20,6 +20,8 @@ class portfolio:
     # The check_buy method checks if the portfolio has enough cash to buy a certain number of shares at a given price. It calculates the total cost of the purchase and compares it to the available cash.
     def check_buy(self, size, price):
         costs = size * price
+        fee = costs * CONFIG["transaction_cost"]
+        costs += fee
         return self.cash >= costs
     
     # The buy method attempts to buy a certain number of shares at a given price. It first checks if the purchase is possible using the check_buy method. If it is, it deducts the cost from the cash, adds the shares to the portfolio, and records the purchase in the buy history. If not, it prints an error message and returns False.
@@ -108,9 +110,12 @@ class portfolio:
     # It zips the buy and sell history together, checks if each sell price is greater than the corresponding buy price, and calculates the win rate as a percentage.
     # It also returns the total number of trades. If there are no trades, it returns a win rate of 0 and a total trade count of 0.
     def calculate_win_rate(self):
-        trades = zip(self.buy_history, self.sell_history)
-        
-        results = [sell[1] > buy[1] for buy, sell in trades]
+        # Win rate is defined on closed round trips only.
+        closed_trades = min(len(self.buy_history), len(self.sell_history))
+        results = [
+            self.sell_history[i][1] > self.buy_history[i][1]
+            for i in range(closed_trades)
+        ]
         
         if not results:
             return 0, 0

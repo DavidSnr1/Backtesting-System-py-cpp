@@ -25,7 +25,7 @@ Python-first trading strategy backtester with a matching C++ engine for performa
 |  |- sample_data.csv      # Sample input file
 |  |- cpp/
 |     |- backtest.cpp      # C++ backtest engine
-|     |- MakeFile          # C++ build file
+|     |- Makefile          # C++ build file
 |- requirements.txt
 ```
 
@@ -98,6 +98,8 @@ cd data/cpp
 make
 ```
 
+Note: Runtime file paths are resolved from the repository root (via each module's file location), so running from a different current working directory still reads/writes `data/`, finds `data/cpp/backtest(.exe)`, and saves outputs in the project folder.
+
 ## Configuration
 
 Edit values in `config.py`:
@@ -111,7 +113,7 @@ Edit values in `config.py`:
 ## Output
 
 - Console summary table with per-strategy metrics
-- Saved chart image: `backtest_ergebnis.png`
+- Saved chart image: `backtest_ergebnis.png` in the repository root
 - Optional Python vs C++ runtime comparison in console
 
 ## Runtime Benchmark

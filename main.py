@@ -10,17 +10,27 @@ from strategy import mov_avg_strat, rsi_strat, dual_ma_strat, bollinger_strat, b
 from config import CONFIG
 
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+
 def run_cpp_backtest(csv_path):
     # Binary name depends on the OS
-    binary = "./data/cpp/backtest.exe" if sys.platform == "win32" else "./data/cpp/backtest"
+    binary_name = "backtest.exe" if sys.platform == "win32" else "backtest"
+    binary = os.path.join(PROJECT_ROOT, "data", "cpp", binary_name)
 
     if not os.path.exists(binary):
-        print("\nC++ Binary not found. Compile with: g++ -O2 -std=c++17 -o data/cpp/backtest.exe data/cpp/backtest.cpp")
+        print("\nC++ binary not found at:")
+        print(binary)
+        print("Compile from repository root with:")
+        if sys.platform == "win32":
+            print("  g++ -O2 -std=c++17 -o data/cpp/backtest.exe data/cpp/backtest.cpp")
+        else:
+            print("  g++ -O2 -std=c++17 -o data/cpp/backtest data/cpp/backtest.cpp")
         return None
 
     cpp_args = [
         binary,
-        csv_path,
+        os.path.abspath(csv_path),
         "all",
         str(CONFIG["backtest"]["initial_capital"]),
         str(CONFIG["backtest"]["fraction_position"]),
@@ -74,14 +84,18 @@ def print_cpp_comparison(python_ms, cpp_results):
     if not cpp_results:
         return
 
-    total_cpp_ms = sum(r["runtime_ms"] for r in cpp_results)
+    total_cpp_ms = sum(r.get("runtime_ms", 0.0) for r in cpp_results)
+    speedup = (python_ms / total_cpp_ms) if total_cpp_ms > 0 else float("inf")
 
     print("\n" + "="*60)
     print("PYTHON vs C++ PERFORMANCE")
     print("="*60)
     print(f"Python:  {python_ms:.1f}ms")
     print(f"C++:     {total_cpp_ms:.1f}ms")
-    print(f"Speedup: {python_ms / total_cpp_ms:.0f}x faster")
+    if speedup == float("inf"):
+        print("Speedup: n/a (C++ runtime not reported)")
+    else:
+        print(f"Speedup: {speedup:.0f}x faster")
     print("="*60)
 
 
@@ -90,7 +104,7 @@ def main():
     print("BACKTESTER STARTER")
     print("="*60)
 
-    csv_path = f'data/{CONFIG["data"]["ticker"]}_live.csv'
+    csv_path = os.path.join(PROJECT_ROOT, "data", f"{CONFIG['data']['ticker']}_live.csv")
 
     # Loading data
     get_yahoo_data(

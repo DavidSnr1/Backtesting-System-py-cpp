@@ -2,6 +2,11 @@ import yfinance as yf
 import pandas as pd
 import os
 
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
+CPP_DIR = os.path.join(DATA_DIR, 'cpp')
+
 def get_yahoo_data(ticker="BTC-USD", period="1y", interval="1h"):
     
     # Download Data from Yahoo Finance
@@ -13,9 +18,9 @@ def get_yahoo_data(ticker="BTC-USD", period="1y", interval="1h"):
             "Please check internet connection, ticker symbol, or Yahoo interval limits."
         )
     
-    # Making sure the data directory exists
-    if not os.path.exists('MVP/data'):
-        os.makedirs('MVP/data')
+    # Make sure runtime output folders exist under the project root.
+    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(CPP_DIR, exist_ok=True)
         
     # Extract relevant columns from both MultiIndex and flat-column formats.
     close_series = data['Close']
@@ -31,5 +36,6 @@ def get_yahoo_data(ticker="BTC-USD", period="1y", interval="1h"):
         )
     
     # Save to CSV
-    df.to_csv(f'data/{ticker}_live.csv', index=False)
+    output_csv = os.path.join(DATA_DIR, f'{ticker}_live.csv')
+    df.to_csv(output_csv, index=False)
     return df

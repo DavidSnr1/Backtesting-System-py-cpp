@@ -1,8 +1,12 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from portfolio import portfolio
 from tabulate import tabulate
+
+
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
 class backtest:
@@ -143,5 +147,6 @@ class backtest:
         ax2.grid(True, alpha=0.3)
 
         plt.tight_layout()
-        plt.savefig('backtest_ergebnis.png', dpi=150)
-        print("\nChart saved as backtest_ergebnis.png")
+        output_path = os.path.join(PROJECT_ROOT, 'backtest_ergebnis.png')
+        plt.savefig(output_path, dpi=150)
+        print(f"\nChart saved as {output_path}")
