@@ -1,9 +1,11 @@
 __pycache__/
 data/*
+!data/sample_data.csv
 !data/cpp/
 data/cpp/*
 !data/cpp/backtest.cpp
 !data/cpp/Makefile
+!data/cpp/README.md
 .conda/
 .venv/
 *.pyc

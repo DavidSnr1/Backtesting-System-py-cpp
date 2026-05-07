@@ -1,8 +1,8 @@
 CONFIG = {
     "data": {
         "ticker": "BTC-USD",            #Type of Stock
-        "period": "1y",                 #Timeframe of Data
-        "interval": "1h"                #Tick-Duration
+        "period": "1mo",                 #Timeframe of Data
+        "interval": "15m"                #Tick-Duration
     },
     "transaction_cost": 0.001,            #Transaction Cost (0.1%)
     "backtest": {

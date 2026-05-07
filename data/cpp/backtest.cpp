@@ -481,13 +481,13 @@ BacktestResult run_backtest(const std::vector<double>& charts,
 int main(int argc, char* argv[]) {
     if (argc < 3) {
         std::cerr << "Usage: backtest.exe <csv_file> <runtime_config_file> [strategy]" << std::endl;
-        std::cerr << "Strategies: mov_avg | buy_and_hold | rsi | dual_ma | bollinger | all" << std::endl;
+        std::cerr << "Strategies: mov_avg | buy_and_hold | rsi | dual_ma | bollinger" << std::endl;
         return 1;
     }
  
     std::string csv_file      = argv[1];
     std::string config_file   = argv[2];
-    std::string strategy_name = (argc > 3) ? argv[3] : "all";
+    std::string strategy_name = (argc > 3) ? argv[3] : "";
 
     RuntimeConfig cfg;
     std::vector<std::string> enabled_strategies;
@@ -496,7 +496,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (enabled_strategies.empty()) {
-        enabled_strategies = {"mov_avg", "buy_and_hold", "rsi", "dual_ma", "bollinger"};
+        std::cerr << "Error: no enabled strategies in runtime config file " << config_file << std::endl;
+        return 1;
     }
  
     std::vector<double> prices = load_prices(csv_file);
@@ -506,7 +507,7 @@ int main(int argc, char* argv[]) {
     }
  
     std::vector<std::string> strategies;
-    if (strategy_name == "all") {
+    if (strategy_name.empty()) {
         strategies = enabled_strategies;
     } else {
         strategies = {strategy_name};

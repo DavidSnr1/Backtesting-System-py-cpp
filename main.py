@@ -57,7 +57,8 @@ def run_cpp_backtest(csv_path):
     # Binary name depends on the OS
     binary_name = "backtest.exe" if sys.platform == "win32" else "backtest"
     binary = os.path.join(PROJECT_ROOT, "data", "cpp", binary_name)
-
+    
+    # Check if binary path exists
     if not os.path.exists(binary):
         print("\nC++ binary not found at:")
         print(binary)
@@ -76,7 +77,6 @@ def run_cpp_backtest(csv_path):
         binary,
         os.path.abspath(csv_path),
         runtime_config_path,
-        "all",
     ]
 
     result = subprocess.run(
@@ -114,17 +114,28 @@ def print_cpp_comparison(python_ms, cpp_results):
         return
 
     total_cpp_ms = sum(r.get("runtime_ms", 0.0) for r in cpp_results)
+    strategy_count = len(cpp_results)
+    avg_python_ms = (python_ms / strategy_count) if strategy_count > 0 else python_ms
+    avg_cpp_ms = (total_cpp_ms / strategy_count) if strategy_count > 0 else total_cpp_ms
     speedup = (python_ms / total_cpp_ms) if total_cpp_ms > 0 else float("inf")
+    relative_speedup_pct = (
+        ((python_ms - total_cpp_ms) / python_ms) * 100.0
+        if python_ms > 0
+        else 0.0
+    )
 
     print("\n" + "="*60)
     print("PYTHON vs C++ PERFORMANCE")
     print("="*60)
     print(f"Python:  {python_ms:.1f}ms")
     print(f"C++:     {total_cpp_ms:.1f}ms")
+    print(f"Avg/strategy (Python): {avg_python_ms:.1f}ms")
+    print(f"Avg/strategy (C++):    {avg_cpp_ms:.1f}ms")
     if speedup == float("inf"):
         print("Speedup: n/a (C++ runtime not reported)")
     else:
         print(f"Speedup: {speedup:.0f}x faster")
+    print(f"Relative speedup: {relative_speedup_pct:.1f}%")
     print("="*60)
 
 
