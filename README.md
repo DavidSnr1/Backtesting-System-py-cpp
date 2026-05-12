@@ -53,6 +53,23 @@ winget install MSYS2.MSYS2
 pacman -S mingw-w64-x86_64-gcc
 ```
 
+If `g++` is not found in PowerShell/Command Prompt after installation, either:
+
+1. Build from the **MSYS2 MinGW x64** shell, or
+2. Add `C:\msys64\mingw64\bin` to your Windows PATH.
+
+Temporary (current PowerShell session only):
+
+```powershell
+$env:Path = "C:\msys64\mingw64\bin;$env:Path"
+```
+
+Verify compiler availability before building:
+
+```bash
+g++ --version
+```
+
 macOS:
 
 ```bash
@@ -126,12 +143,12 @@ Edit values in `config.py`:
 ## Runtime Benchmark
 
 | Engine  | Runtime |
-|---------|---------|
+| ------- | ------- |
 | Python  | ~580ms  |
 | C++     | ~2ms    |
 | Speedup | ~284x   |
 
-*Measured on 8,760 ticks (BTC-USD, 1h, 1 year)*
+_Measured on 8,760 ticks (BTC-USD, 1h, 1 year)_
 
 ## Performance Metrics
 
@@ -178,16 +195,16 @@ All strategy toggles and parameters are managed in `config.py`.
 ## Troubleshooting
 
 - `cc1plus.exe: fatal error: cpp/backtest.cpp: No such file or directory`
-Use the correct path from repo root:
+  Use the correct path from repo root:
 
 ```bash
 g++ -O2 -std=c++17 -o data/cpp/backtest.exe data/cpp/backtest.cpp
 ```
 
 - `structured bindings requires compiler flag '/std:c++17'`
-Compile with C++17 enabled (`-std=c++17` for g++, `/std:c++17` for MSVC)
+  Compile with C++17 enabled (`-std=c++17` for g++, `/std:c++17` for MSVC)
 
-## Pipeline Handout 
+## Pipeline Handout
 
 ### General Workflow (main method)
 
@@ -250,9 +267,9 @@ This method:
 2. Verifies that the binary exists and prints compile guidance if missing.
 3. Writes runtime config via `write_cpp_runtime_config(...)`.
 4. Executes C++ as subprocess with:
-	1. binary path
-	2. absolute CSV path
-	3. runtime config path
+   1. binary path
+   2. absolute CSV path
+   3. runtime config path
 5. Checks subprocess return code.
 6. Parses C++ stdout (`key:value` blocks separated by `---`) into structured Python dictionaries.
 
@@ -350,4 +367,3 @@ print(f"Relative speedup: {relative_speedup_pct:.1f}%")
 ```
 
 So the final output shows both strategy metrics (business result) and performance difference (engineering result).
-
